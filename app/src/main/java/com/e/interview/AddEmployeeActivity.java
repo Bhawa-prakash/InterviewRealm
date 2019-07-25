@@ -11,7 +11,6 @@ import com.e.interview.model.Employee;
 
 import io.realm.Realm;
 
-import static android.text.TextUtils.isEmpty;
 
 public class AddEmployeeActivity extends AppCompatActivity {
     private EditText namee, emaill, phonNo, addres;

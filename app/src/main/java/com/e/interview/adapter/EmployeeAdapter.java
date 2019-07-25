@@ -10,21 +10,25 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Filter;
+import android.widget.Filterable;
 import android.widget.TextView;
 
 import com.e.interview.R;
 import com.e.interview.UpdateDeleteActivity;
 import com.e.interview.model.Employee;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
 
-public class EmployeeAdapter extends RecyclerView.Adapter<EmployeeAdapter.MyViewHolder> {
+public class EmployeeAdapter extends RecyclerView.Adapter<EmployeeAdapter.MyViewHolder>implements Filterable {
 
 
     private Context context;
     private List<Employee> employeeList;
+    private  List<Employee>employeeList1;
 
 
     @NonNull
@@ -39,26 +43,28 @@ public class EmployeeAdapter extends RecyclerView.Adapter<EmployeeAdapter.MyView
 
     @Override
     public void onBindViewHolder(@NonNull final EmployeeAdapter.MyViewHolder myViewHolder, int i) {
-        Employee movie = employeeList.get(i);
+        final Employee movie = employeeList.get(i);
         myViewHolder.empName.setText(movie.getName());
         myViewHolder.empAddress.setText(movie.getAddress());
         myViewHolder.empPhoneNoo.setText(movie.getPhoneno());
         myViewHolder.empEmail.setText(movie.getEmail());
 
-
-       myViewHolder.cardView1.setOnClickListener(new View.OnClickListener() {
+        myViewHolder.cardView1.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View view) {
+
+                myViewHolder.cardView1.setBackgroundColor(context.getResources().getColor(R.color.colorPrimary));
+
                 Intent i = new Intent(context, UpdateDeleteActivity.class);
+
                 i.addFlags(FLAG_ACTIVITY_NEW_TASK);
-                i.putExtra("Name",employeeList.get(myViewHolder.getAdapterPosition()).getName());
-                i.putExtra("Address",employeeList.get(myViewHolder.getAdapterPosition()).getAddress());
-                i.putExtra("PhoneNo",employeeList.get(myViewHolder.getAdapterPosition()).getPhoneno());
-                i.putExtra("Email",employeeList.get(myViewHolder.getAdapterPosition()).getEmail());
+                i.putExtra("Name", employeeList.get(myViewHolder.getAdapterPosition()).getName());
+                i.putExtra("Address", employeeList.get(myViewHolder.getAdapterPosition()).getAddress());
+                i.putExtra("PhoneNo", employeeList.get(myViewHolder.getAdapterPosition()).getPhoneno());
+                i.putExtra("Email", employeeList.get(myViewHolder.getAdapterPosition()).getEmail());
 
-
-             context.startActivity(i);
+                context.startActivity(i);
 
             }
         });
@@ -69,14 +75,18 @@ public class EmployeeAdapter extends RecyclerView.Adapter<EmployeeAdapter.MyView
         return employeeList.size();
     }
 
-    public EmployeeAdapter(Context context,List<Employee> employeeList) {
+    public EmployeeAdapter(Context context, List<Employee> employeeList) {
         this.employeeList = employeeList;
-        this.context =context;
+        this.context = context;
+        employeeList1 = new ArrayList<>();
     }
 
+
+
     public static class MyViewHolder extends RecyclerView.ViewHolder {
-        private TextView empName,empAddress,empPhoneNoo,empEmail;
+        private TextView empName, empAddress, empPhoneNoo, empEmail;
         private CardView cardView1;
+
         public MyViewHolder(@NonNull View itemView) {
 
             super(itemView);
@@ -88,4 +98,40 @@ public class EmployeeAdapter extends RecyclerView.Adapter<EmployeeAdapter.MyView
             cardView1 = itemView.findViewById(R.id.cardView);
         }
     }
+    @Override
+    public Filter getFilter() {
+
+        return employeeFilter;
+    }
+
+    private  Filter employeeFilter = new Filter() {
+        @Override
+        protected FilterResults performFiltering(CharSequence charSequence) {
+            ArrayList<Employee> employeeListNew = new ArrayList<>();
+            if (charSequence == null || charSequence.length() == 0) {
+
+                employeeListNew.addAll(employeeList1);
+            } else {
+
+                String filterPattern = charSequence.toString().toLowerCase().trim();
+                for (Employee employeeItem : employeeList1) {
+
+                    if (employeeItem.getName().toLowerCase().contains(filterPattern)) {
+
+                        employeeListNew.add(employeeItem);
+                    }
+                }
+            }
+            FilterResults results = new FilterResults();
+            results.values = employeeListNew;
+            return results;
+        }
+
+        @Override
+        protected void publishResults(CharSequence charSequence, FilterResults filterResults) {
+         employeeList.clear();
+         employeeList.addAll((List) filterResults.values);
+         notifyDataSetChanged();
+        }
+    };
 }

@@ -33,7 +33,7 @@ public class UpdateDeleteActivity extends AppCompatActivity {
         final String name = bundle.getString("Name");
         String address = bundle.getString("Address");
         String phone = bundle.getString("PhoneNo");
-        String email = bundle.getString("Email");
+        final String email = bundle.getString("Email");
 
         addressUp.setText(address);
         nameUp.setText(name);
@@ -43,12 +43,15 @@ public class UpdateDeleteActivity extends AppCompatActivity {
         deleteUser.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                deleteUser.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
                 deleteUser();
             }
         });
+
         updateUser.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                updateUser.setBackgroundColor(getResources().getColor(R.color.colorAccent));
                 updateDetail();
             }
 
@@ -56,20 +59,31 @@ public class UpdateDeleteActivity extends AppCompatActivity {
 
                 Realm realm = Realm.getDefaultInstance();
 
+                RealmResults<Employee> results = realm.where(Employee.class).equalTo("email", email).findAll();
+                final String userName = nameUp.getText().toString().trim();
+                final String userAddress = addressUp.getText().toString().trim();
+                final String userPhone = phoneNoUp.getText().toString().trim();
 
-                RealmResults<Employee> results = realm.where(Employee.class).equalTo("Name", name).findAll();
-                String userName = nameUp.getText().toString().trim();
+                if (results != null && results.size() > 0) {
+                    final Employee employee = results.first();
+                    try {
+                        realm.executeTransaction(new Realm.Transaction() {
+                            @Override
+                            public void execute(Realm realm) {
+                                employee.setName(userName);
+                                employee.setAddress(userAddress);
+                                employee.setPhoneno(userPhone);
+                                Toast.makeText(UpdateDeleteActivity.this, "update Successfully", Toast.LENGTH_SHORT).show();
+                                finish();
+                            }
+                        });
+                    } catch (Exception e) {
+                        Toast.makeText(UpdateDeleteActivity.this, "Unable to Update", Toast.LENGTH_SHORT).show();
 
-                realm.beginTransaction();
-
-                for (Employee student : results) {
-                    student.setName(userName);
+                    }
 
                 }
 
-                realm.commitTransaction();
-                startActivity(new Intent(UpdateDeleteActivity.this, MainActivity.class));
-                Toast.makeText(UpdateDeleteActivity.this, "update Successfully", Toast.LENGTH_SHORT).show();
 
             }
         });
@@ -83,8 +97,8 @@ public class UpdateDeleteActivity extends AppCompatActivity {
         realm.executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
-                String userName = emailUp.getText().toString().trim();
-                RealmResults<Employee> rows = realm.where(Employee.class).equalTo("email", userName).findAll();
+                String userEmail = emailUp.getText().toString().trim();
+                RealmResults<Employee> rows = realm.where(Employee.class).equalTo("email", userEmail).findAll();
                 rows.deleteAllFromRealm();
                 startActivity(new Intent(UpdateDeleteActivity.this, MainActivity.class));
                 Toast.makeText(UpdateDeleteActivity.this, "Delete Successfully", Toast.LENGTH_SHORT).show();
